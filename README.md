@@ -25,6 +25,10 @@ Analysis — extracts common metal-site statistics from Alchemy outputs.
 Autoplot — prepares CCP4mg image-generation scripts and renders figures.
 default.mgpic — CCP4mg picture template used by `Autoplot`.
 
+## Results
+
+The results directory contains a list of the top 5,000 outlier metal sites in the PDB as of late 2025.
+
 ## Intended use
 
 This deposit is appropriate for:
