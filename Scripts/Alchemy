@@ -1,0 +1,164 @@
+#!/bin/bash
+#
+# Alchemy
+#
+# Version 11/10/2021
+#
+# Script to take pdb and mtz files in same directory from comma seperate list and evauluate electron density
+# The input is a comma delineated file list, the PDB file and the phasesmtz map coefficient file for each PDB.
+# The output is an Edstats file labeled PDB_IDstats.out and a PDB file with the occupancy label replaced by 
+# the RSZD metric. The program documentation suggests that RSZD > 3 can be improved by better modeling.
+# Part of the script is borrowed from PDB download script
+#
+# Updates
+#
+#  directory mode not tested yet
+#
+echo ""
+echo "****************************************************************************"
+echo "Alchemy 11/10/2021 - Script to produce Edstats output on list of PDB entries"
+echo "****************************************************************************"
+echo ""
+echo "Use - 'Alchemy -f file.list' where the file.list is" 
+echo "a comma separated list of PDB ids. The output is to the"
+echo "working directory. The list needs to be in this directory"
+echo "as do the files downloaded by 'Assistant'"
+echo ""
+usage() {
+  cat << EOF >&2
+Usage: $PROGNAME -f <file> [-o <dir>]
+ -f <file>: the input file containing a comma-separated list of PDB ids
+ -o  <dir>: the output dir, default: current dir
+EOF
+  exit 1
+}
+#
+# Set some variables
+#
+listfile=""
+outdir="."  # Default for output in same directory as input
+ANOM=0
+DIRECTORY=$(pwd)
+#
+# Read in the list file
+#
+while getopts f:o:cpaxsmr o
+do
+  case $o in
+    (f) listfile=$OPTARG;;
+#    (o) outdir=$OPTARG;;
+    (*) usage
+  esac
+done
+shift "$((OPTIND - 1))"
+#
+# Check that file list has been provided
+#
+if [ "$listfile" == "" ]
+then
+  echo "Parameter -f must be provided"
+  exit 1
+fi
+#
+# Read list of PDB files to be processed
+#
+contents=$(cat "${DIRECTORY}/${listfile}")
+#
+# Convert to lower case PDB ID
+#
+contentslow=${contents,,}
+#
+# see https://stackoverflow.com/questions/918886/how-do-i-split-a-string-on-a-delimiter-in-bash#tab-top
+# assign list of PDB filesto variable tokens
+#
+IFS=',' read -ra tokens <<< "$contentslow"
+#
+#
+# Loop through list of PDB files in input file
+#
+for token in "${tokens[@]}"
+do
+#
+# Check for anomalous signal and get resolution and wavelength
+#
+#
+mtzdump HKLIN "$DIRECTORY/${token}_0cyc.mtz" << EOF-mtzdump > "${DIRECTORY}/tempmtz"
+GO
+EOF-mtzdump
+#
+# Read in temporary file and extract low and high resolution limits
+# This is line 73 of the mtzdump output and positions 4 and 6 on that line
+#
+lowres=`awk 'NR==73 {print $4}' "${DIRECTORY}/tempmtz"`
+highres=`awk 'NR==73 {print $6}' "${DIRECTORY}/tempmtz"`
+echo 'Starting PDB id '${token}
+echo 'Low resolution '$lowres'A  High resolution '$highres' A'
+#
+# Extract wavelength if present
+#
+wavelength=`awk 'NR==43 {print $1}' "${DIRECTORY}/tempmtz"`
+#
+# Check for anomalous by looking for FAN in mtz file and set anomalous flag
+# 
+if [ `grep -c 'FAN' "${DIRECTORY}/tempmtz"` -gt '0' ]
+  then
+    ANOM=1
+    echo "Anomalous data is available for at a wavelength of "$wavelength" A"
+  else
+    ANOM=0
+    echo "No anomalous data is available for "${token}
+fi
+#
+# Calculate all parameters to make maps. i.e. FC PHIC FWT PHWT DELFWT PHDELWT and FAN and PHAN for anomalous data
+#
+# Observed Fo map
+#
+echo "Calcuating observed map for "${token}
+fft HKLIN "${DIRECTORY}/${token}_0cyc.mtz" MAPOUT "${DIRECTORY}/${token}_fo.map"  << 'EOF-fft-fo' > "${DIRECTORY}/tmp_fo.map"
+labi F1=FWT PHI=PHWT
+GRID SAMP=5  
+EOF-fft-fo
+#
+#
+# Difference Df map
+#
+echo "Calcuating difference map for "${token}
+fft HKLIN "${DIRECTORY}/${token}_0cyc.mtz" MAPOUT "${DIRECTORY}/${token}_df.map"  << 'EOF-fft-df'  > "${DIRECTORY}/tmp_df.map"
+labi F1=DELFWT PHI=PHDELWT
+GRID SAMP=5
+EOF-fft-df
+#
+# Anomalous difference map
+#
+if [ $ANOM -eq 1 ] 
+  then
+    echo "Calcuating anomalous difference map for "${token}
+    fft HKLIN "${DIRECTORY}/${token}_0cyc.mtz" MAPOUT "${DIRECTORY}/${token}_am.map" << 'EOF-fft-am' > "${DIRECTORY}/tmp_am.map"
+    labi F1=FAN PHI=PHAN
+    GRID SAMP=5
+EOF-fft-am
+fi
+# 
+#
+#
+# Run Edstats
+#
+# Resolution limits set and an adjusted PDB file, statistics file and QQ plot output
+#
+echo "Running Edstats on "${token}" for difference map"
+echo reslo=$lowres,reshi=$highres  | edstats  XYZIN "${DIRECTORY}/${token}.pdb"  MAPIN1 "${DIRECTORY}/${token}_fo.map"  \
+MAPIN2 "${DIRECTORY}/${token}_df.map"  XYZOUT ${DIRECTORY}"/"${token}"_rszd.pdb"  \
+OUT "${DIRECTORY}/${token}_stats.out" QQDOUT "${DIRECTORY}/${token}_qq.out" > "${DIRECTORY}/${token}_edstats.log"
+#
+# Run Edstats on the anomalous map
+#
+if [ $ANOM -eq 1 ] 
+  then
+    echo "Running Edstats on "${token}" for anomalous map"
+    echo reslo=$lowres,reshi=$highres  | edstats  XYZIN "${DIRECTORY}/${token}.pdb"  MAPIN1 "${DIRECTORY}/${token}_fo.map"  \
+    MAPIN2 "${DIRECTORY}/${token}_am.map"  XYZOUT "${DIRECTORY}/${token}_am_rszd.pdb"  \
+    OUT "${DIRECTORY}/${token}_stats_am.out" QQDOUT "${DIRECTORY}/${token}_am_qq.out" > "${DIRECTORY}/${token}_edstats_am.log"
+fi
+echo ""
+done
+echo "***************************************************************************"

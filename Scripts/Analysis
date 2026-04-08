@@ -1,0 +1,303 @@
+#!/bin/bash
+#
+# Analysis
+#
+# Version 11/10/2021
+#
+# Analysis of Alchemy output
+#
+# Updates
+#
+#
+echo ""
+echo "****************************************************************************"
+echo "Analysis 11/10/2021 - Script to analyze Alchemy output and prepare for plots"
+echo "****************************************************************************"
+echo ""
+#
+# Simple script to extract metal data from Alchemy files
+#
+DIRECTORY=($pwd)
+#
+echo "Starting with Na, Mg, K, Ca, Mn, Fe, Co, Ni, Cu, and Zn."
+#
+grep "NA  " *_stats.out | cut -c -100  > NA_data
+grep "MG  " *_stats.out | cut -c -100  > MG_Data
+grep "K   " *_stats.out | cut -c -100  > K_Data
+grep "CA  " *_stats.out | cut -c -100  > CA_Data
+grep "MN  " *_stats.out | cut -c -100  > MN_Data
+grep "FE  " *_stats.out | cut -c -100  > FE_Data
+grep "CO  " *_stats.out | cut -c -100  > CO_Data
+grep "NI  " *_stats.out | cut -c -100  > NI_Data
+grep "CU  " *_stats.out | cut -c -100  > CU_Data
+grep "ZN  " *_stats.out | cut -c -100  > ZN_Data
+#
+echo "Searching for MSE"
+#
+grep "MSE " *_stats.out | cut -c -100  > MSE_Data
+#
+# Write uncommon metals to different file
+# 
+# Start file first then add additional metals to it
+#
+echo "Searching for other uncommon metals"
+grep ":CD  " *_stats.out | cut -c -100  >  Other_metal_data
+grep ":HG  " *_stats.out | cut -c -100  >> Other_metal_data
+grep ":PT  " *_stats.out | cut -c -100  >> Other_metal_data
+grep ":MO  " *_stats.out | cut -c -100  >> Other_metal_data 
+grep ":AL  " *_stats.out | cut -c -100  >> Other_metal_data
+grep ":BE  " *_stats.out | cut -c -100  >> Other_metal_data
+grep ":BA  " *_stats.out | cut -c -100  >> Other_metal_data
+grep ":RU  " *_stats.out | cut -c -100  >> Other_metal_data
+grep ":V  "  *_stats.out | cut -c -100  >> Other_metal_data
+grep ":SR  " *_stats.out | cut -c -100  >> Other_metal_data
+grep ":CS  " *_stats.out | cut -c -100  >> Other_metal_data
+grep ":W  "  *_stats.out | cut -c -100  >> Other_metal_data
+grep ":AU  " *_stats.out | cut -c -100  >> Other_metal_data
+grep ":YB  " *_stats.out | cut -c -100  >> Other_metal_data
+grep ":LI  " *_stats.out | cut -c -100  >> Other_metal_data
+grep ":GD  " *_stats.out | cut -c -100  >> Other_metal_data
+grep ":PB  " *_stats.out | cut -c -100  >> Other_metal_data
+grep ":U  "  *_stats.out | cut -c -100  >> Other_metal_data
+grep ":Y  "  *_stats.out | cut -c -100  >> Other_metal_data
+grep ":LR  " *_stats.out | cut -c -100  >> Other_metal_data
+grep ":TI  " *_stats.out | cut -c -100  >> Other_metal_data
+grep ":RB  " *_stats.out | cut -c -100  >> Other_metal_data
+grep ":AG  " *_stats.out | cut -c -100  >> Other_metal_data
+grep ":SM  " *_stats.out | cut -c -100  >> Other_metal_data
+grep ":OS  " *_stats.out | cut -c -100  >> Other_metal_data
+grep ":PR  " *_stats.out | cut -c -100  >> Other_metal_data
+grep ":PD  " *_stats.out | cut -c -100  >> Other_metal_data
+grep ":EU  " *_stats.out | cut -c -100  >> Other_metal_data
+grep ":TB  " *_stats.out | cut -c -100  >> Other_metal_data
+grep ":RE  " *_stats.out | cut -c -100  >> Other_metal_data
+grep ":RH  " *_stats.out | cut -c -100  >> Other_metal_data
+grep ":TA  " *_stats.out | cut -c -100  >> Other_metal_data
+grep ":LU  " *_stats.out | cut -c -100  >> Other_metal_data
+grep ":HO  " *_stats.out | cut -c -100  >> Other_metal_data
+grep ":CR  " *_stats.out | cut -c -100  >> Other_metal_data
+grep ":GA  " *_stats.out | cut -c -100  >> Other_metal_data
+grep ":LA  " *_stats.out | cut -c -100  >> Other_metal_data
+grep ":SN  " *_stats.out | cut -c -100  >> Other_metal_data
+grep ":SB  " *_stats.out | cut -c -100  >> Other_metal_data
+grep ":CE  " *_stats.out | cut -c -100  >> Other_metal_data
+grep ":ZR  " *_stats.out | cut -c -100  >> Other_metal_data
+grep ":ER  " *_stats.out | cut -c -100  >> Other_metal_data
+grep ":TH  " *_stats.out | cut -c -100  >> Other_metal_data
+grep ":TI  " *_stats.out | cut -c -100  >> Other_metal_data
+grep ":IN  " *_stats.out | cut -c -100  >> Other_metal_data
+grep ":HF  " *_stats.out | cut -c -100  >> Other_metal_data
+grep ":SC  " *_stats.out | cut -c -100  >> Other_metal_data
+grep ":DY  " *_stats.out | cut -c -100  >> Other_metal_data
+grep ":BI  " *_stats.out | cut -c -100  >> Other_metal_data
+grep ":PA  " *_stats.out | cut -c -100  >> Other_metal_data
+grep ":PU  " *_stats.out | cut -c -100  >> Other_metal_data
+grep ":AM  " *_stats.out | cut -c -100  >> Other_metal_data
+grep ":CM  " *_stats.out | cut -c -100  >> Other_metal_data
+grep ":CF  " *_stats.out | cut -c -100  >> Other_metal_data
+grep ":GE  " *_stats.out | cut -c -100  >> Other_metal_data
+grep ":NB  " *_stats.out | cut -c -100  >> Other_metal_data
+grep ":TC  " *_stats.out | cut -c -100  >> Other_metal_data
+grep ":ND  " *_stats.out | cut -c -100  >> Other_metal_data
+grep ":PM  " *_stats.out | cut -c -100  >> Other_metal_data
+grep ":TM  " *_stats.out | cut -c -100  >> Other_metal_data
+grep ":PO  " *_stats.out | cut -c -100  >> Other_metal_data
+grep ":FR  " *_stats.out | cut -c -100  >> Other_metal_data
+grep ":RA  " *_stats.out | cut -c -100  >> Other_metal_data
+grep ":AC  " *_stats.out | cut -c -100  >> Other_metal_data
+grep ":NP  " *_stats.out | cut -c -100  >> Other_metal_data
+grep ":BK  " *_stats.out | cut -c -100  >> Other_metal_data
+grep ":ES  " *_stats.out | cut -c -100  >> Other_metal_data
+grep ":FM  " *_stats.out | cut -c -100  >> Other_metal_data
+grep ":MD  " *_stats.out | cut -c -100  >> Other_metal_data
+grep ":NO  " *_stats.out | cut -c -100  >> Other_metal_data
+grep ":LR  " *_stats.out | cut -c -100  >> Other_metal_data
+grep ":RF  " *_stats.out | cut -c -100  >> Other_metal_data
+grep ":DB  " *_stats.out | cut -c -100  >> Other_metal_data
+grep ":SG  " *_stats.out | cut -c -100  >> Other_metal_data
+#
+# Add function to remove lines that have chain K, common ligands, 
+# or carbon alpha (CA) and are mistakenly counted
+#
+echo "Removing most errors - Chain K, carbon alpha Ca etc."
+#
+sed -i '/:ALA/d' K_Data
+sed -i '/:CYS/d' K_Data
+sed -i '/:ASP/d' K_Data
+sed -i '/:GLU/d' K_Data
+sed -i '/:PHE/d' K_Data
+sed -i '/:GLY/d' K_Data
+sed -i '/:HIS/d' K_Data
+sed -i '/:ILE/d' K_Data
+sed -i '/:LYS/d' K_Data
+sed -i '/:LEU/d' K_Data
+sed -i '/:MET/d' K_Data
+sed -i '/:ASN/d' K_Data
+sed -i '/:PRO/d' K_Data
+sed -i '/:GLN/d' K_Data
+sed -i '/:ARG/d' K_Data
+sed -i '/:SER/d' K_Data
+sed -i '/:THR/d' K_Data
+sed -i '/:VAL/d' K_Data
+sed -i '/:TRP/d' K_Data
+sed -i '/:TYR/d' K_Data
+sed -i '/:NAG/d' K_Data
+sed -i '/:DA/d' K_Data
+sed -i '/:DC/d' K_Data
+sed -i '/:DG/d' K_Data
+sed -i '/:DT/d' K_Data
+sed -i '/:CA/d' K_Data
+#
+sed -i '/:ALA/d' CA_Data
+sed -i '/:CYS/d' CA_Data
+sed -i '/:ASP/d' CA_Data
+sed -i '/:GLU/d' CA_Data
+sed -i '/:PHE/d' CA_Data
+sed -i '/:GLY/d' CA_Data
+sed -i '/:HIS/d' CA_Data
+sed -i '/:ILE/d' CA_Data
+sed -i '/:LYS/d' CA_Data
+sed -i '/:LEU/d' CA_Data
+sed -i '/:MET/d' CA_Data
+sed -i '/:ASN/d' CA_Data
+sed -i '/:PRO/d' CA_Data
+sed -i '/:GLN/d' CA_Data
+sed -i '/:ARG/d' CA_Data
+sed -i '/:SER/d' CA_Data
+sed -i '/:THR/d' CA_Data
+sed -i '/:VAL/d' CA_Data
+sed -i '/:TRP/d' CA_Data
+sed -i '/:TYR/d' CA_Data
+sed -i '/:NAG/d' CA_Data
+sed -i '/:DA/d' CA_Data
+sed -i '/:DC/d' CA_Data
+sed -i '/:DG/d' CA_Data
+sed -i '/:DT/d' CA_Data
+#
+# Write out composite common metal data
+#
+cat NA_Data MG_Data K_Data CA_Data MN_Data FE_Data CO_Data NI_Data CU_Data ZN_Data > Metal_data_difference
+#
+Produce file sorted on highest absolute sigma first
+#
+sort -r -h -k 13 Metal_Data_difference > Metal_data_difference_sorted
+#
+# Write out detail on number of metals found
+#
+echo ""
+echo "Number of Na ions: $(wc -l < NA_data)"
+echo "Number of Mg ions: $(wc -l < MG_Data)"
+echo "Number of K  ions: $(wc -l < K_Data)"
+echo "Number of Ca ions: $(wc -l < CA_Data)"
+echo "Number of Mn ions: $(wc -l < MN_Data)"
+echo "Number of Fe ions: $(wc -l < FE_Data)"
+echo "Number of Co ions: $(wc -l < CO_Data)"
+echo "Number of Ni ions: $(wc -l < NI_Data)"
+echo "Number of Cu ions: $(wc -l < CU_Data)"
+echo "Number of Zn ions: $(wc -l < ZN_Data)"
+#
+echo ""
+echo "Number of Se residues: $(wc -l < MSE_Data)"
+echo ""
+echo "Total number of common ions (less Se): $(wc -l < Metal_data_difference)"
+echo ""
+#
+echo "Number of other metal ions: $(wc -l <  Other_metal_data)"
+#
+# Perform a similar analysis on any anomalous data
+#
+echo ""
+echo "Anomalous data for Na, Mg, K, Ca, Mn, Fe, Co, Ni, Cu, and Zn."
+#
+grep ":NA  " *_stats_am.out | cut -c -102  > NA_am_Data
+grep ":MG  " *_stats_am.out | cut -c -102  > MG_am_Data
+grep ":K   " *_stats_am.out | cut -c -102  > K_am_Data
+grep ":CA  " *_stats_am.out | cut -c -102  > CA_am_Data
+grep ":MN  " *_stats_am.out | cut -c -102  > MN_am_Data
+grep ":FE  " *_stats_am.out | cut -c -102  > FE_am_Data
+grep ":CO  " *_stats_am.out | cut -c -102  > CO_am_Data
+grep ":NI  " *_stats_am.out | cut -c -102  > NI_am_Data
+grep ":CU  " *_stats_am.out | cut -c -102  > CU_am_Data
+grep ":ZN  " *_stats_am.out | cut -c -102  > ZN_am_Data
+#
+grep "MSE " *_stats_am.out | cut -c -102  > MSE_am_Data
+#
+# Again add function to remove lines that have chain K or Carbon Alpha (CA) and are mistakenly counted
+#
+sed -i '/:ALA/d' K_am_Data
+sed -i '/:CYS/d' K_am_Data
+sed -i '/:ASP/d' K_am_Data
+sed -i '/:GLU/d' K_am_Data
+sed -i '/:PHE/d' K_am_Data
+sed -i '/:GLY/d' K_am_Data
+sed -i '/:HIS/d' K_am_Data
+sed -i '/:ILE/d' K_am_Data
+sed -i '/:LYS/d' K_am_Data
+sed -i '/:LEU/d' K_am_Data
+sed -i '/:MET/d' K_am_Data
+sed -i '/:ASN/d' K_am_Data
+sed -i '/:PRO/d' K_am_Data
+sed -i '/:GLN/d' K_am_Data
+sed -i '/:ARG/d' K_am_Data
+sed -i '/:SER/d' K_am_Data
+sed -i '/:THR/d' K_am_Data
+sed -i '/:VAL/d' K_am_Data
+sed -i '/:TRP/d' K_am_Data
+sed -i '/:TYR/d' K_am_Data
+sed -i '/:NAG/d' K_am_Data
+sed -i '/:DA/d' K_am_Data
+sed -i '/:DC/d' K_am_Data
+sed -i '/:DG/d' K_am_Data
+sed -i '/:DT/d' K_am_Data
+sed -i '/:CA/d' K_am_Data
+#
+sed -i '/:ALA/d' CA_am_Data
+sed -i '/:CYS/d' CA_am_Data
+sed -i '/:ASP/d' CA_am_Data
+sed -i '/:GLU/d' CA_am_Data
+sed -i '/:PHE/d' CA_am_Data
+sed -i '/:GLY/d' CA_am_Data
+sed -i '/:HIS/d' CA_am_Data
+sed -i '/:ILE/d' CA_am_Data
+sed -i '/:LYS/d' CA_am_Data
+sed -i '/:LEU/d' CA_am_Data
+sed -i '/:MET/d' CA_am_Data
+sed -i '/:ASN/d' CA_am_Data
+sed -i '/:PRO/d' CA_am_Data
+sed -i '/:GLN/d' CA_am_Data
+sed -i '/:ARG/d' CA_am_Data
+sed -i '/:SER/d' CA_am_Data
+sed -i '/:THR/d' CA_am_Data
+sed -i '/:VAL/d' CA_am_Data
+sed -i '/:TRP/d' CA_am_Data
+sed -i '/:TYR/d' CA_am_Data
+sed -i '/:NAG/d' CA_am_Data
+sed -i '/:DA/d' CA_am_Data
+sed -i '/:DC/d' CA_am_Data
+sed -i '/:DG/d' CA_am_Data
+sed -i '/:DT/d' CA_am_Data
+#
+cat NA_am_Data MG_am_Data K_am_Data CA_am_Data MN_am_Data FE_am_Data CO_am_Data NI_am_Data CU_am_Data ZN_am_Data > Metal_Data_anomalous
+#
+# Write out detail on number of metals found
+#
+echo ""
+echo "Number of Na ions: $(wc -l < NA_am_data)"
+echo "Number of Mg ions: $(wc -l < MG_am_Data)"
+echo "Number of K  ions: $(wc -l < K_am_Data)"
+echo "Number of Ca ions: $(wc -l < CA_am_Data)"
+echo "Number of Mn ions: $(wc -l < MN_am_Data)"
+echo "Number of Fe ions: $(wc -l < FE_am_Data)"
+echo "Number of Co ions: $(wc -l < CO_am_Data)"
+echo "Number of Ni ions: $(wc -l < NI_am_Data)"
+echo "Number of Cu ions: $(wc -l < CU_am_Data)"
+echo "Number of Zn ions: $(wc -l < ZN_am_Data)"
+#
+echo ""
+echo "Number of Se residues: $(wc -l < MSE_am_Data)"
+echo ""
+echo "Total number of ions: $(wc -l < Metal_Data_anomalous)"
+echo ""
+#
+echo "Number of other metal ions: $(wc -l <  Other_metal_data)"
+

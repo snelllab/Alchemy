@@ -1,0 +1,250 @@
+#!/bin/bash
+#
+# Autoplot
+#
+# Version 11/10/2021
+#
+# Test to plot structure and maps with CCP4mg
+#
+# Updates
+#
+#  directory mode not tested yet
+#
+echo ""
+echo "****************************************************************************"
+echo "Autoplot 11/10/2021 - Script to produce plots from Edstats outputs"
+echo "****************************************************************************"
+echo ""
+usage() {
+  cat << EOF >&2
+Usage: $PROGNAME -f <file> [-o <dir>]
+ -f <file>: the input file containing a comma-separated list of PDB ids
+ -o  <dir>: the output dir, default: current dir
+EOF
+  exit 1
+}
+#
+# Set some variables
+#
+COUNT=0
+CHAIN=""
+ATOM=""
+NUMBER=""
+TARGET=""
+FILENAME=""
+listfile=""
+DIRECTORY=($pwd)
+#
+# Internal variables that set the rmds differenc elimits fo the map plots
+#
+# Set 2F-Fc to 2 sigma and differenc emaps to 3 sigma
+#
+SIGMAFO=2.0
+SIGMAPDF=3.0
+SIGMANDF=-3.0
+#
+# Create logfile
+#
+echo "Plot log" > plot.log
+#
+outdir="."  # Default for output in same directory as input
+while getopts f:o:cpaxsmr o
+do
+  case $o in
+    (f) listfile=$OPTARG;;
+    (o) outdir=$OPTARG;;
+    (*) usage
+  esac
+done
+
+shift "$((OPTIND - 1))"
+
+if [ "$listfile" == "" ]
+then
+  echo "Parameter -f must be provided"
+  exit 1
+fi
+while IFS= read -r line
+#
+#
+# Loop through Analysis output
+#
+do
+#
+# Count number of files processed
+#
+((COUNT++))
+# 
+# Get PDB ID
+#
+token=${line,,}
+token="${token:0:4}"
+#
+# Extract chain ID and atom number
+#
+CHAIN=""
+ATOM=""
+token=${line,,}
+token="${token:0:4}"
+ATOM=${line:15:2}
+ATOM="${ATOM// /}"
+
+echo "Input ${line}"
+
+LINES=( $line )
+CHAIN=${LINES[1]}
+NUMBER=${LINES[2]}
+SIGMAF=${LINES[12]}
+#
+LENC=${#CHAIN}
+#
+# Trying to account for residue numbers greater than 999 which remove the space between the chain
+#
+if [ $LENC -gt "1" ]
+then
+  CHAIN=${CHAIN:0:1}
+  NUMBER=${CHAIN:(-4)}
+  SIGMAF=${LINES[13]}
+fi
+echo ""
+echo "Sanity check on atom, chain, and number: ${ATOM} ${CHAIN} ${NUMBER}"
+#
+TARGET="/"$CHAIN"/"$NUMBER
+TARGET="${TARGET// /}"
+#
+FILENAME=${token}"_"$ATOM"_"${CHAIN}"_"${NUMBER}
+FILENAME="${FILENAME// /}"
+#
+# Extract x,y,z coordinates from PDB file
+# Note that several different grep patterns are used due to numbering. Probably a better way to do this 
+#
+echo "Looking at "${ATOM}" "${CHAIN}${NUMBER}" in PDB ID "${token}" with absolute sigma "${SIGMAF}" File number "${COUNT}
+LINE1="$(grep "${ATOM} ${CHAIN}${NUMBER}" ${token}_rszd.pdb)"
+LINE2="$(grep "${ATOM} ${CHAIN} ${NUMBER}" ${token}_rszd.pdb)"
+LINE3="$(grep "${ATOM} ${CHAIN}  ${NUMBER}" ${token}_rszd.pdb)"
+LINE4="$(grep "${ATOM} ${CHAIN}   ${NUMBER}" ${token}_rszd.pdb)"
+#
+# The one that is present will return a longer string than the other
+# Use a funky bash command to extract the length
+#
+echo "Line 1 ${LINE1}"
+echo "Line 2 ${LINE2}"
+echo "Line 3 ${LINE3}"
+echo "Line 4 ${LINE4}"
+
+LEN1=${#LINE1}
+LEN2=${#LINE2}
+LEN3=${#LINE3}
+if [ $LEN1 -gt "0" ] 
+then  
+  XYZ=${LINE1}
+  echo "Line1 used"
+elif  [ $LEN2 -gt "0" ] 
+then
+  XYZ=${LINE2}
+  echo "Line2 used"
+elif  [ $LEN3 -gt "0" ] 
+then
+  XYZ=${LINE3}
+  echo "$LINE3 used"
+else
+  XYZ=${LINE4}
+  echo "Line4 used"
+fi
+#
+# Extract coordinates from PDB information
+#
+#XYZS=( $XYZ )
+echo "Coordinates input ${XYZ}"
+#XCORD=${XYZS[6]}
+#YCORD=${XYZS[7]}
+#ZCORD=${XYZS[8]}
+
+XCORD="${XYZ:30:8}"
+XCORD="${XCORD// /}"
+YCORD="${XYZ:38:8}"
+YCORD="${YCORD// /}"
+ZCORD="${XYZ:46:8}"
+ZCORD="${ZCORD// /}"
+echo "x ${XCORD}, y ${YCORD}, z ${ZCORD}"
+#
+# Convert to negative for ccp4mg, use bc because bash cannot process floating point numbers
+#
+XCORD=$( echo $XCORD *-1.0|bc )
+YCORD=$( echo $YCORD *-1.0|bc )
+ZCORD=$( echo $ZCORD *-1.0|bc )
+#
+# Form center_xyz coordinates for ccprmg py file
+#
+COORD=$XCORD", "$YCORD", "$ZCORD
+echo "x,y,z coordinates for CCP4MG are "${COORD}
+#
+# Check for rmsd values for maps
+#
+RMS="$(grep "Rms deviation from mean density" ${token}_edstats.log)"
+RMS_2FO=${RMS:65:7}
+RMS_2FO=$( echo $RMS_2FO*$SIGMAFO|bc )
+RMS_DMF=${RMS:137:10}
+RMS_DMFP=$( echo $RMS_DMF*$SIGMAPDF|bc )
+RMS_DMFN=$( echo $RMS_DMF*$SIGMANDF|bc )
+#
+echo "2Fo-Fc "$RMS_2FO", Fo-Fc +ve and -ve "$RMS_DMFP", "$RMS_DMFN
+#
+# Add legend to image
+#
+LEGEND=${token}" "${ATOM}" "${TARGET}" "${SIGMAF}" sigma"
+#
+#
+#
+FILEOUT=${FILENAME}_1.mgpic.py
+#
+# Copy the template file to the output file name
+#
+cp default.mgpic $FILEOUT
+#
+sed -i -e "s/DIRECTORY/${DIRECTORY}/" $FILEOUT
+sed -i -e "s/DIRECTORY/${DIRECTORY}/" $FILEOUT
+sed -i -e "s/DIRECTORY/${DIRECTORY}/" $FILEOUT
+sed -i -e "s/DIRECTORY/${DIRECTORY}/" $FILEOUT
+echo "DIRECTORY replaced with ${DIRECTORY} in ${FILEOUT}"
+sed -i -e "s/COORDXYZ/${COORD}/" $FILEOUT
+echo "COORDXYZ replaced with ${COORD} in ${FILEOUT}"
+sed -i -e "s/RMS_2FO_LEVEL/${RMS_2FO}/" $FILEOUT
+echo "RMS_2FO_LEVEL replaced with ${RMS_2FO}"
+sed -i -e "s/RMS_DMFP_LEVEL/${RMS_DMFP}/" $FILEOUT
+echo "RMS_DMFP_LEVEL replaced with ${RMS_DMFP} in ${FILEOUT}"
+sed -i -e "s/RMS_DMFN_LEVEL/${RMS_DMFN}/" $FILEOUT
+echo "RMS_DMFN_LEVEL replaced with ${RMS_DMFN} in ${FILEOUT}"
+sed -i -e "s%LEGEND_INSERT%${LEGEND}%" $FILEOUT
+echo "LEGEND_INSERT replaced with ${LEGEND} in ${FILEOUT}"
+#sed -i -e "s%/X/NUM%${TARGET}%g" $FILEOUT
+#sed -i -e "s%/X/NUM%${TARGET}%g" $FILEOUT
+sed -i -e "s/PDBID/${token}/" $FILEOUT
+echo "PDBID replaced with ${token} in ${FILEOUT}"
+sed -i -e "s/PDBID/${token}/" $FILEOUT
+sed -i -e "s/PDBID/${token}/" $FILEOUT
+sed -i -e "s/PDBID/${token}/" $FILEOUT
+#
+# Make copies for 3 orientations
+#
+cp ${FILENAME}_1.mgpic.py ${FILENAME}_2.mgpic.py
+cp ${FILENAME}_1.mgpic.py ${FILENAME}_3.mgpic.py
+#
+sed -i -e "s/ORIENTATION/0.7, 0.0, 0.0, 0.0/" $FILEOUT
+#
+ccp4mg -norestore -picture $FILEOUT -R "${FILENAME}_1.jpg" -RO '{"size":"1600x1600","transparent":"0","smoothribbons":"1","raytrace":"0"}' -quit &>> plot.log
+echo "CCP4MG file ${FILEOUT} created and ${FILENAME}_1.jpg written"
+#
+# Use original file but change orientation
+#
+sed -i -e "s/ORIENTATION/0.7, 0.7, 0.0, 0.0/" ${FILENAME}_2.mgpic.py 
+ccp4mg -norestore -picture ${FILENAME}_2.mgpic.py -R "${FILENAME}_2.jpg" -RO '{"size":"1600x1600","transparent":"0","smoothribbons":"1","raytrace":"0"}' -quit &>> plot.log
+echo "CCP4MG file ${FILENAME}_2.mgpic.py created and ${FILENAME}_2.jpg written"
+#
+sed -i -e "s/ORIENTATION/0.0, 0.0, -0.7, 0.0/" ${FILENAME}_3.mgpic.py 
+ccp4mg -norestore -picture ${FILENAME}_3.mgpic.py -R "${FILENAME}_3.jpg" -RO '{"size":"1600x1600","transparent":"0","smoothribbons":"1","raytrace":"0"}' -quit &>> plot.log
+echo "CCP4MG file ${FILENAME}_3.mgpic.py created and ${FILENAME}_3.jpg written"
+#
+echo ""
+echo "****************************************************************************"
+done < "$listfile"

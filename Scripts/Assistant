@@ -1,0 +1,128 @@
+#!/bin/bash
+#
+# Assistant
+#
+# Adapted from script used to download files from RCSB http file download services
+# and standardized mtz map coeficient files from PDB-REDO.
+# Takes in comma seperated list of PDB ID's and downloads the models and phases files.
+# Use the -h switch to get help on usage.
+#
+# Uses wget to interact with PDB and uses the rcsb.org PDB site. The original PDB
+# script used curl but that proved to be unreliable
+#
+# Current version 11/10/2021
+#
+echo ""
+echo "************************************************************"
+echo "Running Assistant (11/10/21)to download PDB and phases files"
+echo "************************************************************"
+echo ""
+echo "Use - 'Assistant -f file.list' where the file.list is" 
+echo "a comma separated list of PDB ids. The downloads are to the"
+echo "working directory. The list needs to be in this directory"
+echo "used."
+echo ""
+if ! command -v wget &> /dev/null
+then
+    echo "'wget' could not be found. You need to install 'wget' for this script to work."
+    exit 1
+fi
+if ! command -v gunzip &> /dev/null
+then
+    echo "'gunzip' could not be found. You need to install 'gunzip' for this script to work."
+    exit 1
+fi
+#
+PROGNAME=$0
+DIRECTORY=$(pwd)
+#
+# Define the two URL's for PDB files and phase (mtz) files at the RCSB
+#
+BASE_URL_PDB="https://files.rcsb.org/download"  # RCSB download directory
+BASE_URL_PHASE="https://pdb-redo.eu/db"         # PDB-REDO download directory
+#
+# Two download functions are used due to the different directory format
+# and locations for the PDB and phases files - could be improved
+#
+download_pdb() {
+  url="$BASE_URL_PDB/$1"
+  out=$2/$1
+  wget -c -nd -q --show-progress -P $2 $url || echo "Failed to Download"
+}
+download_map(){
+  url="$BASE_URL_PHASE/$1"
+  out=$2/$1
+  wget -c -nd -q --show-progress -P $2 $url || echo "Failed to download"
+}
+#
+# Material that will be presented if someone uses Assistant --h
+#
+usage() {
+  cat << EOF >&2
+Usage: $PROGNAME -f <file> [-o <dir>] [-c] [-p]
+ -f <file>: the input file containing a comma-separated list of PDB ids
+ (-o  <dir>: the output dir, default: current dir - not implemented yet)
+ 
+EOF
+  exit 1
+}
+#
+listfile=""
+outdir="."
+#
+# Parse commands
+#
+while getopts f:o:cpaxsmr o
+do
+  case $o in
+    (f) listfile=$OPTARG;;
+#    (o) outdir=$OPTARG;;
+    (*) usage
+  esac
+done
+shift "$((OPTIND - 1))"
+#
+# Check that a file of pDB id's (or at least a file) has been provided
+#
+if [ "$listfile" == "" ]
+then
+  echo "Parameter -f must be provided"
+  exit 1
+fi
+#
+url_pdb=''
+#
+# Read the file - no sanity check is performed
+#
+#contents=$(cat $listfile)
+contents=$(cat "${DIRECTORY}/${listfile}")
+#
+# Convert all to lowercase for readability and consistancy
+#
+contentslow=${contents,,}
+#
+# see https://stackoverflow.com/questions/918886/how-do-i-split-a-string-on-a-delimiter-in-bash#tab-top
+#
+# Seperate the file based on the comma into the list called tokens
+#
+IFS=',' read -ra tokens <<< "$contentslow"
+#
+# Loop through the list
+#
+for token in "${tokens[@]}"
+do
+#
+# Download the pdb first and phases next
+#
+echo "Downloading files for "${token}
+download_pdb ${token}.pdb.gz $DIRECTORY
+#
+download_map ${token}"/"${token}_0cyc.mtz.gz $DIRECTORY
+#
+# Uncompress downloaded files
+#
+gunzip -vf  ${token}.pdb.gz
+gunzip -vf ${token}_0cyc.mtz.gz
+done
+echo ""
+echo "All done"

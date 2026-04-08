@@ -1,0 +1,19 @@
+cff-version: 1.2.0
+title: "Alchemy (legacy shell placeholder release)"
+message: "If you use this archived shell-script workflow, please cite the associated paper - Assessing Metal Ion Assignment Accuracy in Protein Data Bank Models via Elemental Spectroscopy - Edward H. Snell 1,2, Geoffrey W. Grime3, Samuel M. Webb4, Catia Costa3, M. Elizabeth Snell2, John F. Hunt5, Liang Tong5, Gaetano T. Montelione6, Rachel Zigweid7, Bart L. Staker7, Peter J. Myler78 and Elspeth F. Garman9 (2026), and this software repository."
+type: software
+authors:
+  - family-names: Snell
+    given-names: Edward
+repository-code: "https://github.com/snelllab/alchemy"
+abstract: >-
+  Legacy shell-script implementation of the Alchemy workflow archived as a
+  placeholder repository while a Python implementation is under development.
+keywords:
+  - crystallography
+  - metalloproteins
+  - CCP4
+  - EDSTATS
+  - map analysis
+license: "MIT"
+version: "0.1.0-placeholder"
