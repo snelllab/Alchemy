@@ -12,6 +12,7 @@ Contact - esnell@buffalo.edu
 
 - The code here reflects the original shell-script workflow used during early development.
 - A newer **Python implementation is under active development** and is intended to supersede this version.
+- This is now available at https://github.com/snell-lab/alchemy.
 - The shell scripts are retained to document the historical workflow, expected inputs/outputs, and overall pipeline logic.
 - This repository should therefore be treated as a **legacy prototype**, not as a polished production release.
 
